@@ -254,9 +254,8 @@ pub(crate) mod test {
         insta::assert_snapshot!(xml_output);
     }
 
-    #[test]
-    fn it_should_read_xml_full() {
-        let input = r#"
+    pub(crate) fn xml_external_references() -> &'static str {
+        r#"
 <externalReferences>
   <reference type="external reference type">
     <url>url</url>
@@ -266,7 +265,12 @@ pub(crate) mod test {
     </hashes>
   </reference>
 </externalReferences>
-"#;
+"#
+    }
+
+    #[test]
+    fn it_should_read_xml_full() {
+        let input = xml_external_references();
         let actual: ExternalReferences = read_element_from_string(input);
         let expected = example_external_references();
         assert_eq!(actual, expected);

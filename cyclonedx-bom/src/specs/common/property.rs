@@ -174,13 +174,17 @@ pub(crate) mod test {
         insta::assert_snapshot!(xml_output);
     }
 
-    #[test]
-    fn it_should_read_xml_full() {
-        let input = r#"
+    pub(crate) fn xml_properties() -> &'static str {
+        r#"
 <properties>
   <property name="name">value</property>
 </properties>
-"#;
+"#
+    }
+
+    #[test]
+    fn it_should_read_xml_full() {
+        let input = xml_properties();
         let actual: Properties = read_element_from_string(input);
         let expected = example_properties();
         assert_eq!(actual, expected);

@@ -493,9 +493,12 @@ pub(crate) mod test {
                 corresponding_external_references, example_external_references,
             },
             organization::test::{corresponding_entity, example_entity},
-            property::test::{corresponding_properties, example_properties},
+            property::test::{corresponding_properties, example_properties, xml_properties},
         },
-        specs::v1_3::license::test::{corresponding_licenses, example_licenses},
+        specs::{
+            common::external_reference::test::xml_external_references,
+            v1_3::license::test::{corresponding_licenses, example_licenses, xml_licenses},
+        },
         xml::test::{read_element_from_string, write_element_to_string},
     };
 
@@ -566,9 +569,17 @@ pub(crate) mod test {
         insta::assert_snapshot!(xml_output);
     }
 
-    #[test]
-    fn it_should_read_xml_full() {
-        let input = r#"
+    fn xml_data_classification() -> &'static str {
+        r#"
+<data>
+  <classification flow="flow">classification</classification>
+</data>
+        "#
+    }
+
+    pub(crate) fn xml_services() -> String {
+        [
+            r#"
 <services>
   <service bom-ref="bom-ref">
     <provider>
@@ -589,28 +600,23 @@ pub(crate) mod test {
     </endpoints>
     <authenticated>true</authenticated>
     <x-trust-boundary>true</x-trust-boundary>
-    <data>
-      <classification flow="flow">classification</classification>
-    </data>
-    <licenses>
-      <expression>expression</expression>
-    </licenses>
-    <externalReferences>
-      <reference type="external reference type">
-        <url>url</url>
-        <comment>comment</comment>
-        <hashes>
-          <hash alg="algorithm">hash value</hash>
-        </hashes>
-      </reference>
-    </externalReferences>
-    <properties>
-      <property name="name">value</property>
-    </properties>
+    "#,
+            xml_data_classification(),
+            xml_licenses(),
+            xml_external_references(),
+            xml_properties(),
+            r#"
     <services />
   </service>
 </services>
-"#;
+"#,
+        ]
+        .concat()
+    }
+
+    #[test]
+    fn it_should_read_xml_full() {
+        let input = xml_services();
         let actual: Services = read_element_from_string(input);
         let expected = example_services();
         assert_eq!(actual, expected);

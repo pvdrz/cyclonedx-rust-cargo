@@ -349,7 +349,7 @@ pub(crate) mod test {
             component::test::{corresponding_components, example_components},
             composition::test::{corresponding_compositions, example_compositions},
             metadata::test::{corresponding_metadata, example_metadata},
-            service::test::{corresponding_services, example_services},
+            service::test::{corresponding_services, example_services, xml_services},
         },
         xml::test::{read_document_from_string, write_element_to_string},
     };
@@ -459,7 +459,7 @@ pub(crate) mod test {
 
     #[test]
     fn it_should_deserialize_a_complex_example_from_xml() {
-        let input = r#"
+        let input = [r#"
 <?xml version="1.0" encoding="utf-8"?>
 <bom xmlns="http://cyclonedx.org/schema/bom/1.3" xmlns:example="https://example.com" serialNumber="fake-uuid" version="1">
   <metadata>
@@ -704,47 +704,9 @@ pub(crate) mod test {
       </evidence>
     </component>
   </components>
-  <services>
-    <service bom-ref="bom-ref">
-      <provider>
-        <name>name</name>
-        <url>url</url>
-        <contact>
-          <name>name</name>
-          <email>email</email>
-          <phone>phone</phone>
-        </contact>
-      </provider>
-      <group>group</group>
-      <name>name</name>
-      <version>version</version>
-      <description>description</description>
-      <endpoints>
-        <endpoint>endpoint</endpoint>
-      </endpoints>
-      <authenticated>true</authenticated>
-      <x-trust-boundary>true</x-trust-boundary>
-      <data>
-        <classification flow="flow">classification</classification>
-      </data>
-      <licenses>
-        <expression>expression</expression>
-      </licenses>
-      <externalReferences>
-        <reference type="external reference type">
-          <url>url</url>
-          <comment>comment</comment>
-          <hashes>
-            <hash alg="algorithm">hash value</hash>
-          </hashes>
-        </reference>
-      </externalReferences>
-      <properties>
-        <property name="name">value</property>
-      </properties>
-      <services />
-    </service>
-  </services>
+  "#.trim_start(),
+&xml_services(),
+r#"
   <externalReferences>
     <reference type="external reference type">
       <url>url</url>
@@ -777,7 +739,7 @@ pub(crate) mod test {
     <example:innerElement id="test" />
   </example:laxValidation>
 </bom>
-"#.trim_start();
+"#].concat();
         let actual: Bom = read_document_from_string(input);
         let expected = full_bom_example();
         assert_eq!(actual, expected);

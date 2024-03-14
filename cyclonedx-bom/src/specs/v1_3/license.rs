@@ -419,6 +419,14 @@ pub(crate) mod test {
         xml::test::{read_element_from_string, write_element_to_string},
     };
 
+    pub(crate) fn xml_licenses() -> &'static str {
+        r#"
+<licenses>
+  <expression>expression</expression>
+</licenses>
+"#
+    }
+
     pub(crate) fn example_licenses() -> Licenses {
         Licenses(vec![example_license_expression()])
     }
