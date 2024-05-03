@@ -24,16 +24,6 @@ pub(crate) mod base {
         component::Components, composition::Compositions, external_reference::ExternalReferences,
         metadata::Metadata, service::Services,
     };
-    #[versioned("1.5")]
-    use crate::specs::{
-        common::property::Properties,
-        common::signature::Signature,
-        v1_5::{
-            annotation::Annotations, component::Components, composition::Compositions,
-            external_reference::ExternalReferences, metadata::Metadata, service::Services,
-            vulnerability::Vulnerabilities,
-        },
-    };
     #[versioned("1.4")]
     use crate::specs::{
         common::signature::Signature,
@@ -43,6 +33,20 @@ pub(crate) mod base {
             vulnerability::Vulnerabilities,
         },
     };
+    #[versioned("1.5")]
+    use crate::{
+        specs::{
+            common::property::Properties,
+            common::signature::Signature,
+            v1_5::{
+                annotation::Annotations, component::Components, composition::Compositions,
+                external_reference::ExternalReferences, formulation::Formula, metadata::Metadata,
+                service::Services, vulnerability::Vulnerabilities,
+            },
+        },
+        xml::read_list_tag,
+    };
+
     use crate::{
         errors::BomError,
         models::{self, bom::SpecVersion},
@@ -103,6 +107,9 @@ pub(crate) mod base {
         #[versioned("1.5")]
         #[serde(skip_serializing_if = "Option::is_none")]
         properties: Option<Properties>,
+        #[versioned("1.5")]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        formulation: Option<Vec<Formula>>,
     }
 
     impl TryFrom<models::bom::Bom> for Bom {
@@ -128,6 +135,8 @@ pub(crate) mod base {
                 annotations: try_convert_optional(other.annotations)?,
                 #[versioned("1.5")]
                 properties: convert_optional(other.properties),
+                #[versioned("1.5")]
+                formulation: None,
             })
         }
     }
@@ -241,6 +250,10 @@ pub(crate) mod base {
     const ANNOTATIONS_TAG: &str = "annotations";
     #[versioned("1.5")]
     const PROPERTIES_TAG: &str = "properties";
+    #[versioned("1.5")]
+    const FORMULATION_TAG: &str = "formulation";
+    #[versioned("1.5")]
+    const FORMULA_TAG: &str = "formula";
 
     impl FromXmlDocument for Bom {
         fn read_xml_document<R: std::io::Read>(
@@ -299,6 +312,8 @@ pub(crate) mod base {
             let mut annotations: Option<Annotations> = None;
             #[versioned("1.5")]
             let mut properties: Option<Properties> = None;
+            #[versioned("1.5")]
+            let mut formulation = None;
 
             let mut got_end_tag = false;
             while !got_end_tag {
@@ -398,7 +413,12 @@ pub(crate) mod base {
                             &attributes,
                         )?)
                     }
-
+                    #[versioned("1.5")]
+                    reader::XmlEvent::StartElement { name, .. }
+                        if name.local_name == FORMULATION_TAG =>
+                    {
+                        formulation = Some(read_list_tag(event_reader, &name, FORMULA_TAG)?)
+                    }
                     // lax validation of any elements from a different schema
                     reader::XmlEvent::StartElement { name, .. } => {
                         read_lax_validation_tag(event_reader, &name)?
@@ -436,6 +456,8 @@ pub(crate) mod base {
                 annotations,
                 #[versioned("1.5")]
                 properties,
+                #[versioned("1.5")]
+                formulation,
             })
         }
     }
@@ -530,6 +552,8 @@ pub(crate) mod base {
                 annotations: None,
                 #[versioned("1.5")]
                 properties: None,
+                #[versioned("1.5")]
+                formulation: None,
             }
         }
 
@@ -553,6 +577,9 @@ pub(crate) mod base {
                 annotations: Some(example_annotations()),
                 #[versioned("1.5")]
                 properties: Some(example_properties()),
+                // FIXME: add a full formulation
+                #[versioned("1.5")]
+                formulation: None,
             }
         }
 
